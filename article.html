@@ -1,63 +1,44 @@
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-const SUPABASE_URL = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
+    const SUPABASE_URL = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'; 
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    async function loadArticle() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
 
-async function loadArticle() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get("id");
+        if (!id) {
+            document.getElementById("article-title").innerText = "Invalid Article ID";
+            return;
+        }
 
-    if (!articleId) {
-        document.getElementById("content").innerText = "Invalid article ID.";
-        return;
+        const { data, error } = await supabase
+            .from("articles")
+            .select(`
+                id,
+                title,
+                content,
+                reference,
+                authors(name),
+                categories(name)
+            `)
+            .eq("id", id)
+            .single();
+
+        if (error || !data) {
+            console.error("Supabase error:", error);
+            document.getElementById("article-title").innerText = "Article not found";
+            document.getElementById("article-content").innerHTML = "";
+            return;
+        }
+
+        document.getElementById("article-title").innerText = data.title;
+        document.getElementById("article-content").innerHTML = data.content;
+        document.getElementById("article-author").innerText = data.authors?.name || "Unknown";
+        document.getElementById("article-category").innerText = data.categories?.name || "Uncategorized";
     }
 
-    const { data, error } = await supabase
-        .from("articles")
-        .select(`
-            id,
-            title,
-            content,
-            authors:author_id ( id, name ),
-            categories:category_id ( id, name ),
-            journals:journal_id ( id, name ),
-            next_article,
-            prev_article
-        `)
-        .eq("id", articleId)
-        .single();
-
-    if (error || !data) {
-        console.error(error);
-        document.getElementById("content").innerText = "Article not found.";
-        return;
-    }
-
-    document.getElementById("title").innerText = data.title;
-    document.getElementById("author").innerHTML =
-        `<a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`;
-    document.getElementById("category").innerHTML =
-        `<a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`;
-    document.getElementById("journal").innerHTML =
-        data.journals ? `<a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>` : "";
-
-    document.getElementById("content").innerText = data.content;
-
-    // NEXT ARTICLE
-    if (data.prev_article) {
-        document.getElementById("prev").innerHTML = `← پچھلا مقالہ`;
-        document.getElementById("prev").href = `article.html?id=${data.prev_article}`;
-    }
-
-    // PREVIOUS ARTICLE
-    if (data.next_article) {
-        document.getElementById("next").innerHTML = `اگلا مقالہ →`;
-        document.getElementById("next").href = `article.html?id=${data.next_article}`;
-    }
-}
-
-loadArticle();
+    document.addEventListener("DOMContentLoaded", loadArticle);
 </script>
