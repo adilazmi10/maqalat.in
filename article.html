@@ -1,155 +1,63 @@
-<!DOCTYPE html>
-<html lang="ur" dir="rtl">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>مقالہ</title>
-
-    <!-- Nastaliq Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
-
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: "Noto Nastaliq Urdu", serif;
-            background: #f8f5f0;
-            line-height: 2.2;
-        }
-
-        .article-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
-        }
-
-        .meta {
-            margin: 10px 0 20px;
-            color: #444;
-            font-size: 18px;
-        }
-
-        .content {
-            font-size: 22px;
-            white-space: pre-line;
-        }
-
-        .nav-links {
-            margin-top: 40px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-        }
-
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* Dark Mode */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #1c1c1c;
-                color: #e4e4e4;
-            }
-            .article-container {
-                background: #2a2a2a;
-                color: #fff;
-            }
-            a {
-                color: #90c8ff;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="article-container">
-    <h1 id="title">لوڈ ہو رہا ہے...</h1>
-
-    <div class="meta">
-        <span id="author"></span> |
-        <span id="category"></span> |
-        <span id="journal"></span>
-    </div>
-
-    <div id="content" class="content">براہِ کرم انتظار کریں…</div>
-
-    <div class="nav-links">
-        <a id="prev"></a>
-        <a id="next"></a>
-    </div>
-</div>
-
-<!-- SUPABASE SCRIPT ONLY -->
 <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL = "https://qzvqwpggbcvmvecdxmcz.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU"; // replace
+const SUPABASE_URL = "https://qzvqwpggbcvmvecdxmcz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function loadArticle() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const articleId = urlParams.get("id");
+async function loadArticle() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get("id");
 
-        if (!articleId) {
-            document.getElementById("content").innerText = "Invalid article ID.";
-            return;
-        }
-
-        const { data, error } = await supabase
-            .from("articles")
-            .select(`
-                id, title, content,
-                authors ( id, name ),
-                categories ( id, name ),
-                journals ( id, name ),
-                next_article,
-                prev_article
-            `)
-            .eq("id", articleId)
-            .single();
-
-        if (error || !data) {
-            document.getElementById("content").innerText = "Article not found.";
-            return;
-        }
-
-        document.getElementById("title").innerText = data.title;
-        document.getElementById("author").innerHTML = `<a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`;
-        document.getElementById("category").innerHTML = `<a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`;
-        document.getElementById("journal").innerHTML = data.journals ? `<a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>` : "";
-
-        document.getElementById("content").innerText = data.content;
-
-        // NEXT / PREVIOUS
-        if (data.prev_article) {
-            document.getElementById("prev").innerHTML = `← پچھلا مقالہ`;
-            document.getElementById("prev").href = `article.html?id=${data.prev_article}`;
-        }
-
-        if (data.next_article) {
-            document.getElementById("next").innerHTML = `اگلا مقالہ →`;
-            document.getElementById("next").href = `article.html?id=${data.next_article}`;
-        }
+    if (!articleId) {
+        document.getElementById("content").innerText = "Invalid article ID.";
+        return;
     }
 
-    loadArticle();
-</script>
+    const { data, error } = await supabase
+        .from("articles")
+        .select(`
+            id,
+            title,
+            content,
+            authors:author_id ( id, name ),
+            categories:category_id ( id, name ),
+            journals:journal_id ( id, name ),
+            next_article,
+            prev_article
+        `)
+        .eq("id", articleId)
+        .single();
 
-</body>
-</html>
+    if (error || !data) {
+        console.error(error);
+        document.getElementById("content").innerText = "Article not found.";
+        return;
+    }
+
+    document.getElementById("title").innerText = data.title;
+    document.getElementById("author").innerHTML =
+        `<a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`;
+    document.getElementById("category").innerHTML =
+        `<a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`;
+    document.getElementById("journal").innerHTML =
+        data.journals ? `<a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>` : "";
+
+    document.getElementById("content").innerText = data.content;
+
+    // NEXT ARTICLE
+    if (data.prev_article) {
+        document.getElementById("prev").innerHTML = `← پچھلا مقالہ`;
+        document.getElementById("prev").href = `article.html?id=${data.prev_article}`;
+    }
+
+    // PREVIOUS ARTICLE
+    if (data.next_article) {
+        document.getElementById("next").innerHTML = `اگلا مقالہ →`;
+        document.getElementById("next").href = `article.html?id=${data.next_article}`;
+    }
+}
+
+loadArticle();
+</script>
