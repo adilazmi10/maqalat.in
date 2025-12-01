@@ -1,65 +1,176 @@
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مضمون</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
 
-  const supabaseUrl = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU';
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Nastaliq Urdu', serif;
+      background-color: #fdfcf8;
+      color: #222;
+      direction: rtl;
+      scroll-behavior: smooth;
+    }
+    nav.navbar {
+      background-color: #3e2723;
+      text-align: center;
+      padding: 10px;
+    }
+    nav.navbar a {
+      color: white;
+      margin: 0 10px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 30px;
+      color: #3e2723;
+      margin-bottom: 10px;
+    }
+    .meta {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .book-page {
+      padding: 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      line-height: 2;
+      font-size: 20px;
+      text-align: justify;
+      margin-bottom: 20px;
+    }
+    .page-number {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .nav-footer {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .nav-footer a {
+      color: #3e2723;
+      text-decoration: underline;
+      margin: 0 10px;
+    }
+  </style>
+</head>
 
-  const articleId = new URLSearchParams(window.location.search).get('id');
-  const numericId = Number(articleId); // ✔ FIXED
+<body>
 
-  async function loadArticle() {
-    if (!numericId) return;
+  <!-- Navigation -->
+  <nav class="navbar">
+    <a href="index.html">صفحہ اول</a>
+    <a href="categories.html">زمرہ جات</a>
+    <a href="category.html?name=مصنفین">مصنفین</a>
+  </nav>
 
-    const { data: article, error } = await supabase
-      .from('articles')
-      .select('id, title, reference, content, author_id, authors(name), created_at')
-      .eq('id', numericId)   // ✔ FIXED
-      .single();
+  <div class="container">
+    <h1 id="title">مضمون</h1>
 
-    if (error || !article) {
-      document.getElementById('bookContainer').innerHTML = '<p>مضمون نہیں ملا۔</p>';
-      return;
+    <div class="meta">
+      <p><strong>حوالہ:</strong> <span id="reference"></span></p>
+      <p><strong>مصنف:</strong> <a id="author-link" href="#"></a></p>
+    </div>
+
+    <div id="bookContainer"></div>
+    <div class="nav-footer" id="relatedLinks"></div>
+  </div>
+
+  <!-- Supabase Script -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabase = createClient(
+      "https://npnjpcwqmfwwviqlwrvw.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU"
+    );
+
+    const articleId = new URLSearchParams(window.location.search).get("id");
+
+    async function loadArticle() {
+      if (!articleId) {
+        document.getElementById('bookContainer').innerHTML = "آرٹیکل ID موجود نہیں";
+        return;
+      }
+
+      // FIXED — using exact foreign key
+      const { data: article, error } = await supabase
+        .from("articles")
+        .select(`
+          id,
+          title,
+          reference,
+          content,
+          author_id,
+          created_at,
+          authors:authors!articles_author_id_fkey(name)
+        `)
+        .eq("id", articleId)
+        .single();
+
+      if (error || !article) {
+        console.error("Supabase error:", error);
+        document.getElementById("bookContainer").innerHTML = "مضمون نہیں ملا۔";
+        return;
+      }
+
+      // Fill data
+      document.getElementById("title").textContent = article.title;
+      document.getElementById("reference").textContent = article.reference || "";
+      document.getElementById("author-link").textContent = article.authors?.name || "نامعلوم";
+      document.getElementById("author-link").href = `author.html?id=${article.author_id}`;
+
+      // Pages
+      const chunks = (article.content || "").match(/(.|[\r\n]){1,1000}/g) || [];
+      const container = document.getElementById("bookContainer");
+      container.innerHTML = "";
+
+      chunks.forEach((chunk, index) => {
+        const page = document.createElement("div");
+        page.className = "book-page";
+        page.innerHTML = chunk + `<div class="page-number">صفحہ ${index + 1}</div>`;
+        container.appendChild(page);
+      });
+
+      loadRelated(article.author_id, article.id);
     }
 
-    document.getElementById('title').textContent = article.title;
-    document.getElementById('reference').textContent = article.reference || '';
-    document.getElementById('author-link').textContent = article.authors?.name || 'نامعلوم';
-    document.getElementById('author-link').href = `author.html?id=${article.author_id}`;
+    async function loadRelated(authorId, currentId) {
+      const { data } = await supabase
+        .from("articles")
+        .select("id, title, created_at")
+        .eq("author_id", authorId)
+        .order("created_at");
 
-    const chunks = (article.content || '').match(/(.|[\r\n]){1,1000}/g) || [];
-    const container = document.getElementById('bookContainer');
-    container.innerHTML = '';
+      if (!data) return;
 
-    chunks.forEach((chunk, index) => {
-      const page = document.createElement('div');
-      page.className = 'book-page';
-      page.innerHTML = chunk + `<div class="page-number">صفحہ ${index + 1}</div>`;
-      container.appendChild(page);
-    });
+      const index = data.findIndex(a => a.id == currentId);
+      const prev = data[index - 1];
+      const next = data[index + 1];
 
-    loadRelated(article.author_id, article.id);
-  }
+      document.getElementById("relatedLinks").innerHTML = `
+        ${prev ? `<a href="article.html?id=${prev.id}">← پچھلا</a>` : ""}
+        ${next ? `<a href="article.html?id=${next.id}">اگلا →</a>` : ""}
+      `;
+    }
 
-  async function loadRelated(authorId, currentId) {
-    const { data, error } = await supabase
-      .from('articles')
-      .select('id, title, created_at')
-      .eq('author_id', authorId)
-      .order('created_at', { ascending: true });
+    // FIX — call directly (DOM is already ready)
+    loadArticle();
+  </script>
 
-    if (error || !data) return;
-
-    const index = data.findIndex(a => a.id == currentId);
-    const prev = data[index - 1];
-    const next = data[index + 1];
-
-    const footer = document.getElementById('relatedLinks');
-    footer.innerHTML = `
-      ${prev ? `<a href="article.html?id=${prev.id}">← پچھلا</a>` : ''}
-      ${next ? `<a href="article.html?id=${next.id}">اگلا →</a>` : ''}
-    `;
-  }
-
-  document.addEventListener('DOMContentLoaded', loadArticle);
-</script>
+</body>
+</html>
