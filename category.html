@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مضمون</title>
+  <title>زمرہ</title>
+
   <style>
     @font-face {
       font-family: 'Mehr Nastaliq';
@@ -11,76 +12,112 @@
     }
     body {
       font-family: 'Mehr Nastaliq', serif;
-      background-color: #fdfcf8;
-      direction: rtl;
-      padding: 20px;
+      background: #fdfcf8;
       margin: 0;
+      padding: 20px;
+      line-height: 2;
     }
-    h1 { font-size: 28px; color: #004d40; }
-    .meta { font-size: 16px; color: #555; margin-bottom: 20px; }
-    .page { margin-bottom: 40px; font-size: 18px; line-height: 2; }
+    h1 {
+      font-size: 28px;
+      color: #004d40;
+      margin-bottom: 20px;
+    }
+    .item {
+      padding: 12px;
+      background: #fff;
+      margin-bottom: 12px;
+      border-right: 4px solid #004d40;
+      cursor: pointer;
+    }
+    .item:hover {
+      background: #e1f3f0;
+    }
+    a {
+      color: #004d40;
+      text-decoration: none;
+    }
   </style>
 </head>
-<body>
-  <h1 id="title">عنوان لوڈ ہو رہا ہے…</h1>
-  <div class="meta">
-    <strong>حوالہ:</strong> <span id="reference"></span><br />
-    <strong>مصنف:</strong> <a id="author-link" href="#"></a>
-  </div>
-  <div id="content"></div>
 
-  <!-- Use a single module script and import createClient -->
+<body>
+  <h1 id="category-title">لوڈ ہو رہا ہے…</h1>
+  <div id="list"></div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // Replace with your real values (do NOT commit secrets to public repos)
-    const SUPABASE_URL = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU';
+    const supabase = createClient(
+      'https://npnjpcwqmfwwviqlwrvw.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'
+    );
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const params = new URLSearchParams(window.location.search);
+    const categoryName = params.get("name");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('id');
+    document.getElementById("category-title").textContent =
+      categoryName ? `زمرہ: ${categoryName}` : "زمرہ";
 
-    async function loadArticle() {
-      if (!articleId) {
-        document.getElementById('content').textContent = 'آرٹیکل ID موجود نہیں۔';
+    async function loadCategory() {
+      const listDiv = document.getElementById("list");
+
+      if (!categoryName) {
+        listDiv.textContent = "کوئی زمرہ منتخب نہیں کیا گیا۔";
         return;
       }
 
-      // If your id is numeric in the DB, cast to Number(articleId). Otherwise keep as string.
-      const idToQuery = isNaN(Number(articleId)) ? articleId : Number(articleId);
+      // ✔ Special case: مصنفین
+      if (categoryName === "مصنفین") {
+        const { data: authors, error } = await supabase
+          .from("authors")
+          .select("id, name")
+          .order("name", { ascending: true });
 
-      const { data: article, error } = await supabase
-        .from('articles')
-        .select(`id, title, reference, content, author_id, authors ( name )`)
-        .eq('id', idToQuery)
-        .single();
+        if (error) {
+          listDiv.textContent = "مصنفین لوڈ کرنے میں خرابی۔";
+          return;
+        }
 
-      if (error || !article) {
-        console.error('Supabase error:', error);
-        document.getElementById('content').textContent = 'مضمون لوڈ کرنے میں خرابی۔';
+        authors.forEach(a => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `<a href="author.html?id=${a.id}">${a.name}</a>`;
+          listDiv.appendChild(div);
+        });
+
         return;
       }
 
-      document.getElementById('title').textContent = article.title || '';
-      document.getElementById('reference').textContent = article.reference || '';
-      document.getElementById('author-link').textContent = article.authors?.name || 'نامعلوم';
-      document.getElementById('author-link').href = `author.html?id=${article.author_id}`;
+      // ✔ Load articles for this category
+      const { data: articles, error } = await supabase
+        .from("articles")
+        .select("id, title, reference, category")
+        .eq("category", categoryName)
+        .order("id", { ascending: false });
 
-      const contentDiv = document.getElementById('content');
-      // Split into pages of up to 800 chars (keeps newlines)
-      const pages = article.content?.match(/(.|[\r\n]){1,800}/g) || [];
+      if (error) {
+        listDiv.textContent = "زمرہ لوڈ کرنے میں خرابی۔";
+        return;
+      }
 
-      pages.forEach((chunk, i) => {
-        const div = document.createElement('div');
-        div.className = 'page';
-        div.innerHTML = chunk + `<div style="text-align:center; font-size:14px; color:#888;">صفحہ ${i + 1}</div>`;
-        contentDiv.appendChild(div);
+      if (!articles.length) {
+        listDiv.textContent = "اس زمرہ میں کوئی مضمون موجود نہیں۔";
+        return;
+      }
+
+      articles.forEach(a => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <a href="article.html?id=${a.id}">
+            <strong>${a.title}</strong><br>
+            <span>${a.reference || ""}</span>
+          </a>
+        `;
+        listDiv.appendChild(div);
       });
     }
 
-    loadArticle();
+    loadCategory();
   </script>
 </body>
 </html>
