@@ -1,44 +1,275 @@
-<script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مضمون — Maqalat</title>
 
-    const SUPABASE_URL = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'; 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    async function loadArticle() {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
-
-        if (!id) {
-            document.getElementById("article-title").innerText = "Invalid Article ID";
-            return;
-        }
-
-        const { data, error } = await supabase
-            .from("articles")
-            .select(`
-                id,
-                title,
-                content,
-                reference,
-                authors(name),
-                categories(name)
-            `)
-            .eq("id", id)
-            .single();
-
-        if (error || !data) {
-            console.error("Supabase error:", error);
-            document.getElementById("article-title").innerText = "Article not found";
-            document.getElementById("article-content").innerHTML = "";
-            return;
-        }
-
-        document.getElementById("article-title").innerText = data.title;
-        document.getElementById("article-content").innerHTML = data.content;
-        document.getElementById("article-author").innerText = data.authors?.name || "Unknown";
-        document.getElementById("article-category").innerText = data.categories?.name || "Uncategorized";
+  <!-- Local Nastaliq if you have it (optional) -->
+  <style>
+    @font-face {
+      font-family: "Mehr Nastaliq";
+      src: url("fonts/mehr-nastaliq.woff") format("woff");
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
     }
 
-    document.addEventListener("DOMContentLoaded", loadArticle);
-</script>
+    :root {
+      --max-w: 820px;
+      --bg: #fdfcf8;
+      --accent: #3e2723;
+    }
+
+    html,body { height:100%; margin:0; background:var(--bg); font-family:"Mehr Nastaliq","Noto Nastaliq Urdu", serif; direction:rtl; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
+    .topbar { background:var(--accent); color:#fff; padding:10px 16px; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    .topbar a { color:#fff; text-decoration:none; font-size:18px; margin:0 6px; }
+    .topbar input[type="search"] { padding:6px 10px; border-radius:6px; border:1px solid #ccc; font-family:inherit; font-size:16px; direction:rtl; }
+
+    .wrap { max-width:var(--max-w); margin:28px auto; padding:0 16px; }
+
+    .heading { color:var(--accent); font-size:30px; margin:0 0 8px; }
+    .meta { color:#666; font-size:16px; margin-bottom:18px; }
+    .meta a { color:var(--accent); text-decoration:underline; }
+
+    .book { display:flex; flex-direction:column; gap:22px; height:75vh; overflow:auto; scroll-behavior:smooth; padding-right:4px; }
+    .page { background:#fff; padding:28px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08); line-height:2; font-size:18px; text-align:justify; }
+    .page-number { text-align:center; color:#999; font-size:14px; margin-top:10px; }
+
+    .footer-nav { display:flex; justify-content:center; gap:20px; margin-top:18px; font-size:18px; }
+    .footer-nav a { color:var(--accent); text-decoration:underline; }
+
+    .toggle-wrap { text-align:center; margin:12px 0; }
+    .toggle-wrap button { padding:6px 10px; font-size:14px; cursor:pointer; }
+
+    /* Responsive narrower text on mobile */
+    @media (max-width:520px) {
+      .page { font-size:16px; padding:20px; }
+      .heading { font-size:24px; }
+    }
+
+    /* Dark mode */
+    body.dark { background:#121212; color:#ddd; }
+    body.dark .page { background:#1e1e1e; color:#eee; box-shadow: none; }
+    body.dark .topbar { background:#222; }
+    body.dark .topbar a { color:#eee; }
+  </style>
+</head>
+<body>
+  <div class="topbar" role="navigation" aria-label="main nav">
+    <a href="index.html">صفحہ اول</a>
+    <a href="categories.html">زمرہ جات</a>
+    <a href="category.html?name=مصنفین">مصنفین</a>
+
+    <!-- inline search (Enter to go to search.html?q=...) -->
+    <input id="navSearch" type="search" placeholder="تلاش کریں..." aria-label="تلاش" />
+  </div>
+
+  <div class="wrap">
+    <h1 id="article-title" class="heading">لوڈ ہو رہا ہے…</h1>
+
+    <div class="meta">
+      حوالہ: <span id="article-reference"></span> &nbsp; | &nbsp;
+      مصنف: <a id="article-author" href="#"></a> &nbsp; | &nbsp;
+      زمرہ: <a id="article-category" href="#"></a>
+    </div>
+
+    <div class="toggle-wrap">
+      <button id="darkToggle" aria-pressed="false">🌙 نائٹ موڈ</button>
+    </div>
+
+    <div id="bookContainer" class="book" aria-live="polite">
+      <!-- pages will be injected here -->
+    </div>
+
+    <div class="footer-nav" id="relatedLinks" aria-hidden="false"></div>
+  </div>
+
+  <!-- ===== SINGLE MODULE SCRIPT ===== -->
+  <script type="module">
+  // -------------------------
+  //  CONFIG - Replace values
+  // -------------------------
+  const SUPABASE_URL = 'https://npnjpcwqmfwwviqlwrvw.supabase.co'; 
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'; 
+
+  // -------------------------
+  //  Load supabase client
+  // -------------------------
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // -------------------------
+  //  Helper functions
+  // -------------------------
+  function el(id){ return document.getElementById(id); }
+  function safeSetText(id, text){ const node = el(id); if(node) node.textContent = text ?? ''; }
+  function safeSetHTML(id, html){ const node = el(id); if(node) node.innerHTML = html ?? ''; }
+
+  // Search box behaviour
+  const navSearch = el('navSearch');
+  if (navSearch) {
+    navSearch.addEventListener('keypress', (e)=>{
+      if (e.key === 'Enter') {
+        const q = navSearch.value.trim();
+        if (q) window.location.href = `search.html?q=${encodeURIComponent(q)}`;
+      }
+    });
+  }
+
+  // dark toggle
+  const darkToggle = el('darkToggle');
+  if (darkToggle) {
+    darkToggle.addEventListener('click', ()=>{
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      darkToggle.setAttribute('aria-pressed', String(isDark));
+    });
+  }
+
+  // Main loader
+  async function loadArticle(){
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if(!id){
+        safeSetText('article-title', 'آرٹیکل ID فراہم نہیں کیا گیا۔');
+        safeSetHTML('bookContainer', '<div class="page">آرٹیکل نمبر دستیاب نہیں۔</div>');
+        return;
+      }
+
+      // If numeric id in DB, cast
+      const idToQuery = isNaN(Number(id)) ? id : Number(id);
+
+      // Query joined author and category (adjust keys to match your schema if different)
+      const { data: article, error } = await supabase
+        .from('articles')
+        .select(`
+          id,
+          title,
+          reference,
+          content,
+          author_id,
+          category_id,
+          created_at,
+          authors ( id, name ),
+          categories ( id, name )
+        `)
+        .eq('id', idToQuery)
+        .single();
+
+      if (error){
+        console.error('Supabase error:', error);
+        safeSetText('article-title','مضمون نہیں ملا۔');
+        safeSetHTML('bookContainer', `<div class="page">مضمون حاصل کرنے میں مسئلہ: ${error.message ?? 'Unknown'}</div>`);
+        return;
+      }
+
+      if(!article){
+        safeSetText('article-title','مضمون موجود نہیں۔');
+        safeSetHTML('bookContainer', `<div class="page">کوئی مضمون نہیں ملا۔</div>`);
+        return;
+      }
+
+      // Populate meta
+      safeSetText('article-title', article.title ?? 'بدون عنوان');
+      safeSetText('article-reference', article.reference ?? '');
+      const authorNode = el('article-author');
+      if (authorNode) {
+        const name = article.authors?.name ?? 'نامعلوم';
+        authorNode.textContent = name;
+        authorNode.href = article.author_id ? `author.html?id=${article.author_id}` : '#';
+      }
+      const catNode = el('article-category');
+      if (catNode) {
+        const cname = article.categories?.name ?? '';
+        catNode.textContent = cname || '';
+        catNode.href = article.category_id ? `category.html?id=${article.category_id}` : '#';
+      }
+
+      // Render pages (split every ~900 chars but preserve words where possible)
+      const raw = article.content ?? '';
+      const PAGE_CHARS = 900;
+      // split by paragraphs first to avoid breaking words dramatically
+      const paras = raw.split(/\n{1,}/).filter(Boolean);
+      const pages = [];
+      let buffer = '';
+      for (const p of paras) {
+        if ((buffer + '\n\n' + p).length <= PAGE_CHARS) {
+          buffer = buffer ? (buffer + '\n\n' + p) : p;
+        } else {
+          if (buffer) pages.push(buffer);
+          // if paragraph itself bigger than PAGE_CHARS, chunk it
+          if (p.length <= PAGE_CHARS) buffer = p;
+          else {
+            // chunk large paragraph
+            const regex = new RegExp(`(.|[\\r\\n]){1,${PAGE_CHARS}}`,'g');
+            const chunks = p.match(regex) || [p];
+            pages.push(...chunks);
+            buffer = '';
+          }
+        }
+      }
+      if (buffer) pages.push(buffer);
+      if (pages.length === 0) pages.push('کوئی مواد موجود نہیں۔');
+
+      // Insert pages
+      const container = el('bookContainer');
+      if (!container) {
+        console.error('Missing #bookContainer element in DOM.');
+        return;
+      }
+      container.innerHTML = '';
+      pages.forEach((text, i)=>{
+        const div = document.createElement('div');
+        div.className = 'page';
+        // preserve simple line breaks, allow basic HTML safe rendering
+        const safeHtml = text.replace(/</g, '&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        div.innerHTML = safeHtml + `<div class="page-number">صفحہ ${i+1}</div>`;
+        container.appendChild(div);
+      });
+
+      // load related (prev/next) by same author (ordered by created_at)
+      loadRelated(article.author_id, article.id);
+
+    } catch (err) {
+      console.error('Unexpected error in loadArticle:', err);
+      safeSetText('article-title','درخواست میں خرابی۔');
+      safeSetHTML('bookContainer', `<div class="page">غلطی: ${String(err)}</div>`);
+    }
+  }
+
+  async function loadRelated(authorId, currentId){
+    try {
+      if(!authorId) return;
+      const { data, error } = await supabase
+        .from('articles')
+        .select('id, title, created_at')
+        .eq('author_id', authorId)
+        .order('created_at', { ascending: true });
+
+      if (error){ console.warn('related fetch error', error); return; }
+      if (!data || data.length === 0) return;
+
+      const idx = data.findIndex(a => String(a.id) === String(currentId));
+      const prev = idx > 0 ? data[idx-1] : null;
+      const next = (idx >= 0 && idx < data.length-1) ? data[idx+1] : null;
+
+      const relatedNode = el('relatedLinks');
+      if (!relatedNode) return;
+      relatedNode.innerHTML = `
+        ${prev ? `<a href="article.html?id=${prev.id}">← پچھلا: ${prev.title}</a>` : ''}
+        ${next ? `<a href="article.html?id=${next.id}">اگلا: ${next.title} →</a>` : ''}
+      `;
+    } catch (e){
+      console.error('loadRelated error', e);
+    }
+  }
+
+  // start
+  loadArticle();
+
+  </script>
+</body>
+</html>
