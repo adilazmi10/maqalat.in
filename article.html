@@ -50,6 +50,7 @@
       font-size: 20px;
       text-align: justify;
       margin-bottom: 20px;
+      white-space: pre-wrap;
     }
     .page-number {
       text-align: center;
@@ -96,7 +97,7 @@
 
     const supabase = createClient(
       "https://npnjpcwqmfwwviqlwrvw.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40p"
     );
 
     const articleId = new URLSearchParams(window.location.search).get("id");
@@ -107,7 +108,7 @@
         return;
       }
 
-      // FIXED — using exact foreign key
+      // ✅ FIXED — correct join syntax
       const { data: article, error } = await supabase
         .from("articles")
         .select(`
@@ -117,7 +118,7 @@
           content,
           author_id,
           created_at,
-          authors:authors!articles_author_id_fkey(name)
+          authors(name)
         `)
         .eq("id", articleId)
         .single();
@@ -134,10 +135,12 @@
       document.getElementById("author-link").textContent = article.authors?.name || "نامعلوم";
       document.getElementById("author-link").href = `author.html?id=${article.author_id}`;
 
-      // Pages
-      const chunks = (article.content || "").match(/(.|[\r\n]){1,1000}/g) || [];
+      // Book Pages
       const container = document.getElementById("bookContainer");
       container.innerHTML = "";
+
+      const text = article.content || "";
+      const chunks = text.match(/(.|[\r\n]){1,1200}/g) || [];
 
       chunks.forEach((chunk, index) => {
         const page = document.createElement("div");
@@ -163,14 +166,4 @@
       const next = data[index + 1];
 
       document.getElementById("relatedLinks").innerHTML = `
-        ${prev ? `<a href="article.html?id=${prev.id}">← پچھلا</a>` : ""}
-        ${next ? `<a href="article.html?id=${next.id}">اگلا →</a>` : ""}
-      `;
-    }
-
-    // FIX — call directly (DOM is already ready)
-    loadArticle();
-  </script>
-
-</body>
-</html>
+        ${prev ? `<a hr
