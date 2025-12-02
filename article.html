@@ -32,7 +32,6 @@
 
 <body>
 
-    <!-- REQUIRED ELEMENTS (Fix for your errors) -->
     <h1 id="article-title" class="title"></h1>
     <div id="article-author" class="author"></div>
     <div id="article-category" class="category"></div>
@@ -46,7 +45,7 @@
         import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
         const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU"; 
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         async function loadArticle() {
@@ -62,9 +61,9 @@
                 .from("articles")
                 .select(`
                     id, title, content, reference,
-                    authors(name),
-                    categories(name),
-                    journals(title)
+                    authors ( id, name ),
+                    categories ( id, name ),
+                    journals ( id, name )
                 `)
                 .eq("id", id)
                 .single();
@@ -75,14 +74,23 @@
                 return;
             }
 
-            // --- SAFE UPDATE (no more null errors!) ---
             document.getElementById("article-title").innerText = data.title || "";
-            document.getElementById("article-author").innerText =
-                data.authors?.name ? "مصنف: " + data.authors.name : "";
-            document.getElementById("article-category").innerText =
-                data.categories?.name ? "زمرہ: " + data.categories.name : "";
-            document.getElementById("article-journal").innerText =
-                data.journals?.title ? "جرنل: " + data.journals.title : "";
+
+            document.getElementById("article-author").innerHTML =
+                data.authors?.name
+                    ? `مصنف: <a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`
+                    : "";
+
+            document.getElementById("article-category").innerHTML =
+                data.categories?.name
+                    ? `زمرہ: <a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`
+                    : "";
+
+            document.getElementById("article-journal").innerHTML =
+                data.journals?.name
+                    ? `جرنل: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
+                    : "";
+
             document.getElementById("article-content").innerHTML = data.content || "";
         }
 
