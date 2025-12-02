@@ -5,38 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مضمون</title>
 
-    <!-- Mehr Nastaliq font -->
-    <link href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" rel="stylesheet">
-
+    <!-- Load local Mehr Nastaliq font (mobile friendly) -->
     <style>
-        body {
-            font-family: "Mehr Nastaliq Web", serif !important;
-            padding: 20px;
-            max-width: 850px;
-            margin: auto;
-            line-height: 1.9; /* Reduced gap */
+        @font-face {
+            font-family: 'Mehr Nastaliq';
+            src: url('fonts/mehr-nastaliq.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
         }
 
-        /* Simple top navigation */
+        body {
+            margin: 0;
+            font-family: 'Mehr Nastaliq', 'Noto Nastaliq Urdu', serif !important;
+            background-color: #f9f6f1;
+            direction: rtl;
+       
+        /* Navigation style (same color as site) */
         .nav {
-            margin-bottom: 15px;
-            font-size: 24px;
+            background-color: #5d4037;
+            padding: 12px 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
         }
+
         .nav a {
-            margin-left: 24px;
+            color: white;
             text-decoration: none;
-            color: #444;
+            font-size: 20px;
+        }
+        .nav a:hover {
+            color: #ffcc80;
         }
 
         .title {
             font-size: 32px;
             font-weight: bold;
+            margin-bottom: 12px;
+            color: #3e2723;
         }
-        .author, .category, .journal {
+
+        .meta {
             font-size: 18px;
             color: #444;
-            margin-top: 8px;
+            margin-bottom: 6px;
         }
+
         .content {
             margin-top: 25px;
             font-size: 24px;
@@ -61,20 +75,23 @@
         <a href="journals.html">مجلات</a>
     </div>
 
-    <h1 id="article-title" class="title"></h1>
-    <div id="article-author" class="author"></div>
-    <div id="article-category" class="category"></div>
-    <div id="article-journal" class="journal"></div>
+    <div class="content-wrapper">
+        <h1 id="article-title" class="title"></h1>
 
-    <hr>
+        <div id="article-author" class="meta"></div>
+        <div id="article-category" class="meta"></div>
+        <div id="article-journal" class="meta"></div>
 
-    <div id="article-content" class="content"></div>
+        <hr>
+
+        <div id="article-content" class="content"></div>
+    </div>
 
     <script type="module">
         import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
         const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
+        const supabaseKey = "YOUR_KEY"; // (unchanged)
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         async function loadArticle() {
