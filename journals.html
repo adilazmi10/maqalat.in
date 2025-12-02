@@ -64,10 +64,21 @@
         return;
       }
 
-      journals.forEach(journal => {
+      journals.forEach(async journal => {
+        // fetch article count for this journal
+        const { count } = await supabase
+          .from('articles')
+          .select('id', { count: 'exact', head: true })
+          .eq('journal_id', journal.id);
+
         const div = document.createElement('div');
         div.className = 'journal-card';
-        div.innerHTML = `<a href="journal.html?id=${journal.id}">${journal.name}</a>`;
+        div.innerHTML = `
+          <a href="journal.html?id=${journal.id}">
+            ${journal.name}
+            <span style="color:#666; font-size:18px;">(${count} مضامین)</span>
+          </a>
+        `;
         container.appendChild(div);
       });
     }
