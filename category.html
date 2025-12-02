@@ -1,131 +1,84 @@
-<!DOCTYPE html>
-<html lang="ur" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>زمرہ</title>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  <style>
-    @font-face {
-      font-family: 'Mehr Nastaliq';
-      src: url('fonts/mehr-nastaliq.woff') format('woff');
+  const supabase = createClient(
+    'https://npnjpcwqmfwwviqlwrvw.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'
+  );
+
+  const params = new URLSearchParams(window.location.search);
+  const categoryName = params.get("name");
+
+  document.getElementById("category-title").textContent =
+    categoryName ? `زمرہ: ${categoryName}` : "زمرہ";
+
+  async function loadCategory() {
+    const listDiv = document.getElementById("list");
+
+    if (!categoryName) {
+      listDiv.textContent = "کوئی زمرہ منتخب نہیں کیا گیا۔";
+      return;
     }
-    body {
-      font-family: 'Mehr Nastaliq', serif;
-      background: #fdfcf8;
-      margin: 0;
-      padding: 20px;
-      line-height: 2;
-    }
-    h1 {
-      font-size: 28px;
-      color: #004d40;
-      margin-bottom: 20px;
-    }
-    .item {
-      padding: 12px;
-      background: #fff;
-      margin-bottom: 12px;
-      border-right: 4px solid #004d40;
-      cursor: pointer;
-    }
-    .item:hover {
-      background: #e1f3f0;
-    }
-    a {
-      color: #004d40;
-      text-decoration: none;
-    }
-  </style>
-</head>
 
-<body>
-  <h1 id="category-title">لوڈ ہو رہا ہے…</h1>
-  <div id="list"></div>
+    // ✔ Special Case: Authors (مصنفین)
+    if (categoryName === "مصنفین") {
+      const { data: authors } = await supabase
+        .from("authors")
+        .select("id, name")
+        .order("name", { ascending: true });
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-    const supabase = createClient(
-      'https://npnjpcwqmfwwviqlwrvw.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU'
-    );
-
-    const params = new URLSearchParams(window.location.search);
-    const categoryName = params.get("name");
-
-    document.getElementById("category-title").textContent =
-      categoryName ? `زمرہ: ${categoryName}` : "زمرہ";
-
-    async function loadCategory() {
-      const listDiv = document.getElementById("list");
-
-      if (!categoryName) {
-        listDiv.textContent = "کوئی زمرہ منتخب نہیں کیا گیا۔";
-        return;
-      }
-
-      // ✔ Special Case: مصنفین
-      if (categoryName === "مصنفین") {
-        const { data: authors, error } = await supabase
-          .from("authors")
-          .select("id, name")
-          .order("name", { ascending: true });
-
-        if (error) {
-          listDiv.textContent = "مصنفین لوڈ کرنے میں خرابی۔";
-          return;
-        }
-
-        authors.forEach(a => {
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `<a href="author.html?id=${a.id}">${a.name}</a>`;
-          listDiv.appendChild(div);
-        });
-
-        return;
-      }
-
-      // ----------------------------------------
-      // ✔ Correct Category Query (using category_id)
-      // ----------------------------------------
-      const { data: articles, error } = await supabase
-        .from("articles")
-        .select(`
-          id,
-          title,
-          reference,
-          categories ( id, name )
-        `)
-        .eq("categories.name", categoryName)
-        .order("id", { ascending: false });
-
-      if (error) {
-        console.error(error);
-        listDiv.textContent = "زمرہ لوڈ کرنے میں خرابی۔";
-        return;
-      }
-
-      if (!articles.length) {
-        listDiv.textContent = "اس زمرہ میں کوئی مضمون موجود نہیں۔";
-        return;
-      }
-
-      articles.forEach(a => {
+      authors?.forEach(a => {
         const div = document.createElement("div");
         div.className = "item";
-        div.innerHTML = `
-          <a href="article.html?id=${a.id}">
-            <strong>${a.title}</strong><br>
-            <span>${a.reference || ""}</span>
-          </a>
-        `;
+        div.innerHTML = `<a href="author.html?id=${a.id}">${a.name}</a>`;
         listDiv.appendChild(div);
       });
+
+      return;
     }
 
-    loadCategory();
-  </script>
-</body>
-</html>
+    // ----------------------------------
+    // ✔ STEP 1 — Get category ID by name
+    // ----------------------------------
+    const { data: catData } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("name", categoryName)
+      .single();
+
+    if (!catData) {
+      listDiv.textContent = "زمرہ نہیں ملا۔";
+      return;
+    }
+
+    const categoryId = catData.id;
+
+    // ----------------------------------
+    // ✔ STEP 2 — Load articles for this category
+    // ----------------------------------
+    const { data: articles } = await supabase
+      .from("articles")
+      .select("id, title, reference")
+      .eq("category_id", categoryId)   // ✔ correct column
+      .order("id", { ascending: false });
+
+    if (!articles?.length) {
+      listDiv.textContent = "اس زمرہ میں کوئی مضمون موجود نہیں۔";
+      return;
+    }
+
+    articles.forEach(a => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <a href="article.html?id=${a.id}">
+          <strong>${a.title}</strong><br>
+          <span>${a.reference || ""}</span>
+        </a>
+      `;
+      listDiv.appendChild(div);
+    });
+  }
+
+  loadCategory();
+</script>
