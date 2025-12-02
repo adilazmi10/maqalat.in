@@ -5,19 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مضمون</title>
 
-  <!-- Noto Nastaliq Urdu for full mobile support -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Mehr Nastaliq Web (mobile-supported) -->
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" crossorigin="anonymous">
 
   <style>
     body {
       margin: 0;
       background-color: #fdfcf8;
-      font-family: 'Noto Nastaliq Urdu', serif;
+      font-family: 'Mehr Nastaliq Web', serif !important;
       font-size: 18px;
       line-height: 1.95;
     }
 
-    /* SAME TOP BAR AS AUTHORS / JOURNALS */
     .site-title {
       background-color: #004d40;
       color: white;
@@ -43,7 +42,6 @@
       color: #ffcc80;
     }
 
-    /* Article container SAME STYLE as authors.html box */
     .article-box {
       max-width: 850px;
       background: #fff;
@@ -52,7 +50,6 @@
       border-radius: 10px;
     }
 
-    /* Article styling */
     .title {
       font-size: 32px;
       font-weight: bold;
@@ -76,16 +73,14 @@
 
     .content {
       margin-top: 25px;
-      font-size: 23px;
+      font-size: 20px;
       white-space: pre-wrap;
     }
 
-    /* Fix paragraph spacing */
     .content p, .content div {
       margin: 0 0 6px 0 !important;
       padding: 0 !important;
     }
-
   </style>
 </head>
 
@@ -106,6 +101,7 @@
     <div class="meta" id="article-author"></div>
     <div class="meta" id="article-category"></div>
     <div class="meta" id="article-journal"></div>
+    <div class="meta" id="article-reference"></div> <!-- NEW -->
 
     <hr>
 
@@ -161,6 +157,9 @@
         data.journals?.name
           ? `مجلہ: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
           : "";
+
+      document.getElementById("article-reference").innerHTML =
+        data.reference ? `حوالہ: ${data.reference}` : "";
 
       document.getElementById("article-content").innerHTML = data.content || "";
     }
