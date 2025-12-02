@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مصنفین - مقالات</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
@@ -42,17 +44,29 @@
       background-color: #fff;
       border-radius: 10px;
     }
-    .authors-list a {
-      display: block;
-      margin: 10px 0;
+    .author-card {
+      margin: 12px 0;
+      padding: 10px 15px;
+      background: #fefaf5;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.08);
+      font-size: 20px;
+      line-height: 2;
+    }
+    .author-card a {
       color: #3e2723;
       text-decoration: none;
     }
-    .authors-list a:hover {
+    .author-card a:hover {
       color: #bf360c;
+    }
+    .count {
+      color: #6d4c41;
+      font-size: 16px;
     }
   </style>
 </head>
+
 <body>
   <div class="site-title">مصنفین</div>
 
@@ -61,36 +75,4 @@
     <a href="authors.html">مصنفین</a>
   </nav>
 
-  <div class="authors-list" id="authors"></div>
-
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-    const supabaseUrl = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    async function loadAuthors() {
-      const { data: authors, error } = await supabase
-        .from('authors')
-        .select('id, name')
-        .order('name', { ascending: true });
-
-      const container = document.getElementById('authors');
-      if (error || !authors) {
-        container.innerHTML = '<p>مصنفین کو لوڈ کرنے میں مسئلہ ہوا۔</p>';
-        return;
-      }
-
-      authors.forEach(author => {
-        const link = document.createElement('a');
-        link.href = `author.html?id=${author.id}`;
-        link.textContent = author.name;
-        container.appendChild(link);
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', loadAuthors);
-  </script>
-</body>
-</html>
+  <div class="
