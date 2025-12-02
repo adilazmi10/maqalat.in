@@ -1,68 +1,48 @@
 <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مصنفین - مقالات</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مصنفین</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
 
   <style>
     body {
-      margin: 0;
       font-family: 'Noto Nastaliq Urdu', serif;
-      background-color: #f9f6f1;
-      font-size: 17px;
+      background-color: #fdfcf8;
+      margin: 0;
+      padding: 20px;
     }
     .site-title {
-      background-color: #3e2723;
+      background-color: #004d40;
       color: white;
-      text-align: center;
-      padding: 15px 0;
-      font-size: 30px;
-    }
-    nav {
-      background-color: #5d4037;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 10px;
-    }
-    nav a {
-      color: white;
-      margin: 0 10px;
-      text-decoration: none;
-      font-size: 17px;
-    }
-    nav a:hover {
-      color: #ffcc80;
-    }
-    .authors-list {
-      max-width: 600px;
-      margin: 30px auto;
       padding: 20px;
-      background-color: #fff;
-      border-radius: 10px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
     }
     .author-card {
-      margin: 12px 0;
-      padding: 10px 15px;
-      background: #fefaf5;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.08);
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 800px;
       font-size: 20px;
       line-height: 2;
     }
-    .author-card a {
-      color: #3e2723;
+    a {
+      color: #004d40;
       text-decoration: none;
     }
-    .author-card a:hover {
-      color: #bf360c;
+    a:hover {
+      color: #00796b;
     }
     .count {
-      color: #6d4c41;
-      font-size: 16px;
+      color: #555;
+      font-size: 18px;
+      margin-right: 8px;
     }
   </style>
 </head>
@@ -70,9 +50,50 @@
 <body>
   <div class="site-title">مصنفین</div>
 
-  <nav>
-    <a href="index.html">صفحہ اول</a>
-    <a href="authors.html">مصنفین</a>
-  </nav>
+  <div id="authors"></div>
 
-  <div class="
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://npnjpcwqmfwwviqlwrvw.supabase.co';
+    const supabaseKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU';
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function loadAuthors() {
+      const { data: authors, error } = await supabase
+        .from('authors')
+        .select('id, name')
+        .order('name', { ascending: true });
+
+      const container = document.getElementById('authors');
+      container.innerHTML = '';
+
+      if (error || !authors || authors.length === 0) {
+        container.innerHTML = '<p>کوئی مصنف موجود نہیں۔</p>';
+        return;
+      }
+
+      for (const author of authors) {
+        // Get article count for the author
+        const { count } = await supabase
+          .from('articles')
+          .select('id', { count: 'exact', head: true })
+          .eq('author_id', author.id);
+
+        const div = document.createElement('div');
+        div.className = 'author-card';
+
+        div.innerHTML = `
+          <a href="author.html?id=${author.id}">
+            ${author.name}
+          </a>
+          <span class="count">(${count} مضامین)</span>
+        `;
+
+        container.appendChild(div);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAutho
