@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مضمون</title>
 
-    <!-- Mehr Nastaliq font -->
-    <link href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" rel="stylesheet">
+    <!-- Mehr Nastaliq Web Font -->
+    <link href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" rel="stylesheet" />
 
     <style>
         body {
@@ -14,17 +14,21 @@
             padding: 20px;
             max-width: 850px;
             margin: auto;
-            line-height: 1.9; 
+            line-height: 1.8; /* Reduced line height */
         }
 
-        .nav {
-            margin-bottom: 15px;
-            font-size: 32px;
+        .top-nav {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0;
+            font-size: 20px;
         }
-        .nav a {
-            margin-left: 10px;
+        .top-nav a {
             text-decoration: none;
             color: #444;
+        }
+        .top-nav a:hover {
+            text-decoration: underline;
         }
 
         .title {
@@ -32,34 +36,37 @@
             font-weight: bold;
         }
         .author, .category, .journal {
-            font-size: 24px;
+            font-size: 18px;
             color: #444;
             margin-top: 5px;
         }
+
         .content {
             margin-top: 25px;
-            font-size: 24px;
+            font-size: 20px;
             white-space: pre-wrap;
         }
 
-        /* Fix paragraph spacing */
-        .content p,
-        .content div {
-            margin: 0 0 5px 0 !important;
+        /* Remove huge gaps between paragraphs */
+        .content p {
+            margin: 0 0 10px 0 !important;
             padding: 0 !important;
+        }
+        .content div {
+            margin: 0 0 10px 0 !important;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Simple navigation (no structure changed) -->
-    <div class="nav">
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="top-nav">
         <a href="/">صفحہ اول</a>
-        <a href="authors.html">مصنفین</a>
-        <a href="categories.html">زمرہ جات</a>
-        <a href="journals.html">مجلات</a>
-    </div>
+        <a href="/authors.html">مصنفین</a>
+        <a href="/categories.html">زمرہ جات</a>
+        <a href="/journals.html">مجلات</a>
+    </nav>
 
     <h1 id="article-title" class="title"></h1>
     <div id="article-author" class="author"></div>
@@ -74,7 +81,7 @@
         import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
         const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40p";
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         async function loadArticle() {
@@ -112,12 +119,12 @@
 
             document.getElementById("article-category").innerHTML =
                 data.categories?.name
-                    ? `زمرہ: <a href="category.html?name=${encodeURIComponent(article.category_name)}">`
+                    ? `زمرہ: <a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`
                     : "";
 
             document.getElementById("article-journal").innerHTML =
                 data.journals?.name
-                    ? `جرنل: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
+                    ? `مجلہ: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
                     : "";
 
             document.getElementById("article-content").innerHTML = data.content || "";
