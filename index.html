@@ -1,72 +1,144 @@
 <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مقالات</title>
 
-  <!-- Nastaliq Font -->
+  <!-- ✅ Load Mehr Nastaliq from local path -->
   <style>
     @font-face {
-      font-family: 'Mehr Nastaliq Web';
-      src: url('fonts/MehrNastaliqWeb.woff2') format('woff2');
-      font-display: swap;
+      font-family: 'Mehr Nastaliq';
+      src: url('fonts/mehr-nastaliq.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
     }
 
     body {
       margin: 0;
-      padding: 0;
-      font-family: 'Mehr Nastaliq Web', serif;
-      background: #fafafa;
+      font-family: 'Mehr Nastaliq', 'Noto Nastaliq Urdu', serif;
+      background-color: #f9f6f1;
       direction: rtl;
-      text-align: right;
     }
 
-    header {
-      background: #222;
-      color: #fff;
-      padding: 20px;
+    .site-title {
+      background-color: #3e2723;
+      color: white;
       text-align: center;
-      font-size: 28px;
+      padding: 20px 0;
+      font-size: 36px;
+      font-weight: bold;
+      font-family: 'Mehr Nastaliq';
     }
 
     nav {
+      background-color: #5d4037;
       display: flex;
+      justify-content: flex-start;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 15px;
-      background: #f2f2f2;
-      font-size: 20px;
-      justify-content: center;
+      align-items: center;
+      padding: 10px 20px;
+      gap: 20px;
     }
 
     nav a {
-      color: #222;
+      color: white;
       text-decoration: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      font-size: 20px;
+      transition: color 0.3s ease;
     }
 
     nav a:hover {
-      background: #ddd;
+      color: #ffcc80;
     }
 
     #searchBox {
-      padding: 6px 12px;
+      padding: 5px 10px;
+      font-family: 'Mehr Nastaliq';
       font-size: 18px;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      direction: rtl;
+      margin-right: auto;
+      margin-left: 10px;
     }
 
-    .container {
+    .content {
+      max-width: 800px;
+      margin: 40px auto;
       padding: 20px;
+    }
+
+    .article-card {
+      background: #fff;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-family: 'Mehr Nastaliq';
+      margin-bottom: 20px;
+      font-size: 20px;
+      line-height: 2;
+      text-align: right;
+    }
+
+    .author-link {
+      color: #3e2723;
+      text-decoration: underline;
+    }
+
+    .read-more {
+      display: inline-block;
+      margin-top: 10px;
+      color: blue;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .read-more:hover {
+      color: darkblue;
     }
   </style>
 </head>
-
 <body>
+  <div class="site-title">مقالات</div>
 
-<header>مقالات</header>
+  <!-- ✅ Navigation with search -->
+  <nav>
+    <a href="index.html">صفحہ اول</a>
+    <a href="category.html?name=قرآنیات">قرآنیات</a>
+    <a href="category.html?name=علوم حدیث">علوم حدیث</a>
+    <a href="category.html?name=ادب">ادب</a>
+    <a href="category.html?name=فلسفہ">فلسفہ</a>
+    <a href="category.html?name=تاریخ">تاریخ</a>
+    <a href="category.html?name=اخلاقيات">اخلاقيات</a>
+    <a href="category.html?name=سماجيات">سماجيات</a>
+    <a href="category.html?name=سياسيات">سياسيات</a>
+    <a href="category.html?name=معاشیات">معاشیات</a>
+    <a href="category.html?name=مابعدالطبیعیات">مابعدالطبیعیات</a>
+    <!-- Changed this single line to point to authors.html -->
+    <a href="authors.html">مصنفین</a>
+    <a href="journals.html">مجلات</a>
+    <a href="category.html?name=رابطہ">رابطہ</a>
+    <input type="search" id="searchBox" placeholder="تلاش کریں..." />
+  </nav>
 
-<nav>
-  <a href="index.ht
+  <div class="content">
+    <div id="articles"></div>
+  </div>
+
+  <!-- ✅ Search script -->
+  <script>
+    document.getElementById('searchBox').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        const query = this.value.trim();
+        if (query) {
+          window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+      }
+    });
+  </script>
+
+  <!-- ✅ Load article cards -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
