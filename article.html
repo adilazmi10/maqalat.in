@@ -152,4 +152,21 @@
           ? `مصنف: <a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`
           : "";
 
-      d
+      document.getElementById("article-category").innerHTML =
+        data.categories?.name
+          ? `زمرہ: <a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`
+          : "";
+
+      document.getElementById("article-journal").innerHTML =
+        data.journals?.name
+          ? `مجلہ: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
+          : "";
+
+      document.getElementById("article-content").innerHTML = data.content || "";
+    }
+
+    loadArticle();
+  </script>
+
+</body>
+</html>
