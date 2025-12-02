@@ -65,7 +65,7 @@
         return;
       }
 
-      // ✔ Special case: مصنفین
+      // ✔ Special Case: مصنفین
       if (categoryName === "مصنفین") {
         const { data: authors, error } = await supabase
           .from("authors")
@@ -87,14 +87,22 @@
         return;
       }
 
-      // ✔ Load articles for this category
+      // ----------------------------------------
+      // ✔ Correct Category Query (using category_id)
+      // ----------------------------------------
       const { data: articles, error } = await supabase
         .from("articles")
-        .select("id, name, reference, category")
-        .eq("category", categoryName)
+        .select(`
+          id,
+          title,
+          reference,
+          categories ( id, name )
+        `)
+        .eq("categories.name", categoryName)
         .order("id", { ascending: false });
 
       if (error) {
+        console.error(error);
         listDiv.textContent = "زمرہ لوڈ کرنے میں خرابی۔";
         return;
       }
