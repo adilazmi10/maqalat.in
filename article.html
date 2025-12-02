@@ -1,147 +1,155 @@
 <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مضمون</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مضمون</title>
 
-    <!-- Load local Mehr Nastaliq font (mobile friendly) -->
-    <style>
-        @font-face {
-            font-family: 'Mehr Nastaliq';
-            src: url('fonts/mehr-nastaliq.woff') format('woff');
-            font-weight: normal;
-            font-style: normal;
-        }
+  <!-- Noto Nastaliq Urdu for full mobile support -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
 
-        body {
-            margin: 0;
-            font-family: 'Mehr Nastaliq', 'Noto Nastaliq Urdu', serif !important;
-            background-color: #f9f6f1;
-            direction: rtl;
-       
-        /* Navigation style (same color as site) */
-        .nav {
-            background-color: #5d4037;
-            padding: 12px 20px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+  <style>
+    body {
+      margin: 0;
+      background-color: #f9f6f1;
+      font-family: 'Noto Nastaliq Urdu', serif;
+      font-size: 18px;
+      line-height: 1.95;
+    }
 
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 20px;
-        }
-        .nav a:hover {
-            color: #ffcc80;
-        }
+    /* SAME TOP BAR AS AUTHORS / JOURNALS */
+    .site-title {
+      background-color: #3e2723;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 28px;
+    }
 
-        .title {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: #3e2723;
-        }
+    nav {
+      background-color: #5d4037;
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: white;
+      margin: 0 10px;
+      text-decoration: none;
+      font-size: 17px;
+    }
+    nav a:hover {
+      color: #ffcc80;
+    }
 
-        .meta {
-            font-size: 18px;
-            color: #444;
-            margin-bottom: 6px;
-        }
+    /* Article container SAME STYLE as authors.html box */
+    .article-box {
+      max-width: 850px;
+      background: #fff;
+      padding: 25px;
+      margin: 25px auto;
+      border-radius: 10px;
+    }
 
-        .content {
-            margin-top: 25px;
-            font-size: 24px;
-            white-space: pre-wrap;
-        }
+    /* Article styling */
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
 
-        /* Fix paragraph spacing */
-        .content p,
-        .content div {
-            margin: 0 0 3px 0 !important;
-            padding: 0 !important;
-        }
-    </style>
+    .meta {
+      font-size: 19px;
+      color: #4e342e;
+      margin-bottom: 10px;
+    }
+
+    .meta a {
+      color: #3e2723;
+      text-decoration: none;
+    }
+    .meta a:hover {
+      color: #bf360c;
+    }
+
+    .content {
+      margin-top: 25px;
+      font-size: 23px;
+      white-space: pre-wrap;
+    }
+
+    /* Fix paragraph spacing */
+    .content p, .content div {
+      margin: 0 0 6px 0 !important;
+      padding: 0 !important;
+    }
+
+  </style>
 </head>
 
 <body>
 
-    <div class="nav">
-        <a href="/">صفحہ اول</a>
-        <a href="authors.html">مصنفین</a>
-        <a href="categories.html">زمرہ جات</a>
-        <a href="journals.html">مجلات</a>
-    </div>
+  <div class="site-title">مضمون</div>
 
-    <div class="content-wrapper">
-        <h1 id="article-title" class="title"></h1>
+  <nav>
+    <a href="index.html">صفحہ اول</a>
+    <a href="authors.html">مصنفین</a>
+    <a href="categories.html">زمرہ جات</a>
+    <a href="journals.html">مجلات</a>
+  </nav>
 
-        <div id="article-author" class="meta"></div>
-        <div id="article-category" class="meta"></div>
-        <div id="article-journal" class="meta"></div>
+  <div class="article-box">
+    <h1 id="article-title" class="title"></h1>
 
-        <hr>
+    <div class="meta" id="article-author"></div>
+    <div class="meta" id="article-category"></div>
+    <div class="meta" id="article-journal"></div>
 
-        <div id="article-content" class="content"></div>
-    </div>
+    <hr>
 
-    <script type="module">
-        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+    <div id="article-content" class="content"></div>
+  </div>
 
-        const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-        const supabaseKey = "YOUR_KEY"; // (unchanged)
-        const supabase = createClient(supabaseUrl, supabaseKey);
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-        async function loadArticle() {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get("id");
+    const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-            if (!id) {
-                document.body.innerHTML = "<h2>Invalid article ID</h2>";
-                return;
-            }
+    async function loadArticle() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
 
-            const { data, error } = await supabase
-                .from("articles")
-                .select(`
-                    id, title, content, reference,
-                    authors ( id, name ),
-                    categories ( id, name ),
-                    journals ( id, name )
-                `)
-                .eq("id", id)
-                .single();
+      if (!id) {
+        document.body.innerHTML = "<h2>Invalid article ID</h2>";
+        return;
+      }
 
-            if (error) {
-                console.error(error);
-                document.body.innerHTML = "<h2>Error loading article.</h2>";
-                return;
-            }
+      const { data, error } = await supabase
+        .from("articles")
+        .select(`
+          id, title, content, reference,
+          authors ( id, name ),
+          categories ( id, name ),
+          journals ( id, name )
+        `)
+        .eq("id", id)
+        .single();
 
-            document.getElementById("article-title").innerText = data.title || "";
+      if (error) {
+        console.error(error);
+        document.body.innerHTML = "<h2>Error loading article.</h2>";
+        return;
+      }
 
-            document.getElementById("article-author").innerHTML =
-                data.authors?.name
-                    ? `مصنف: <a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`
-                    : "";
+      document.getElementById("article-title").innerText = data.title || "";
 
-            document.getElementById("article-category").innerHTML =
-                data.categories?.name
-                    ? `زمرہ: <a href="category.html?id=${data.categories.id}">${data.categories.name}</a>`
-                    : "";
+      document.getElementById("article-author").innerHTML =
+        data.authors?.name
+          ? `مصنف: <a href="author.html?id=${data.authors.id}">${data.authors.name}</a>`
+          : "";
 
-            document.getElementById("article-journal").innerHTML =
-                data.journals?.name
-                    ? `مجلہ: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
-                    : "";
-
-            document.getElementById("article-content").innerHTML = data.content || "";
-        }
-
-        loadArticle();
-    </script>
-
-</body>
-</html>
+      d
