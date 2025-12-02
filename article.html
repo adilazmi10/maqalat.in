@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مضمون</title>
 
-  <!-- Mehr Nastaliq Web (mobile-supported) -->
+  <!-- Mehr Nastaliq Web -->
   <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" crossorigin="anonymous">
+
+  <!-- Fallback for phones that cannot load Mehr Nastaliq inside WebView -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
       background-color: #fdfcf8;
-      font-family: 'Mehr Nastaliq Web', serif !important;
+      font-family: 'Mehr Nastaliq Web', 'Noto Nastaliq Urdu', serif !important;
       font-size: 18px;
       line-height: 1.95;
     }
@@ -101,7 +104,7 @@
     <div class="meta" id="article-author"></div>
     <div class="meta" id="article-category"></div>
     <div class="meta" id="article-journal"></div>
-    <div class="meta" id="article-reference"></div> <!-- NEW -->
+    <div class="meta" id="article-reference"></div>
 
     <hr>
 
