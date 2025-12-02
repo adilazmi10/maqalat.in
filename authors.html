@@ -22,7 +22,8 @@
       font-size: 28px;
       font-weight: bold;
     }
-    .author-card {
+    /* using the same .journal-card style so visuals are identical to journals.html */
+    .journal-card {
       background: white;
       padding: 20px;
       margin: 20px auto;
@@ -31,6 +32,10 @@
       max-width: 800px;
       font-size: 20px;
       line-height: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
     a {
       color: #004d40;
@@ -40,9 +45,9 @@
       color: #00796b;
     }
     .count {
-      color: #555;
+      color: #666;
       font-size: 18px;
-      margin-right: 8px;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -72,23 +77,23 @@
 
       if (error || !authors || authors.length === 0) {
         container.innerHTML = '<p>کوئی مصنف موجود نہیں۔</p>';
+        console.log('Authors load error:', error);
         return;
       }
 
+      // keep insertion order identical to journals.html behaviour
       for (const author of authors) {
-        // Get article count for the author
+        // fast head count for articles by this author
         const { count } = await supabase
           .from('articles')
           .select('id', { count: 'exact', head: true })
           .eq('author_id', author.id);
 
         const div = document.createElement('div');
-        div.className = 'author-card';
+        div.className = 'journal-card';
 
         div.innerHTML = `
-          <a href="author.html?id=${author.id}">
-            ${author.name}
-          </a>
+          <a href="author.html?id=${author.id}">${author.name}</a>
           <span class="count">(${count} مضامین)</span>
         `;
 
@@ -96,4 +101,7 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadAutho
+    document.addEventListener('DOMContentLoaded', loadAuthors);
+  </script>
+</body>
+</html>
