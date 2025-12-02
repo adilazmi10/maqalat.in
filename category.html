@@ -90,7 +90,7 @@
       // ✔ Load articles for this category
       const { data: articles, error } = await supabase
         .from("articles")
-        .select("id, title, reference, category")
+        .select("id, name, reference, category")
         .eq("category", categoryName)
         .order("id", { ascending: false });
 
