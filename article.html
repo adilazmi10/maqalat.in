@@ -3,16 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مقالہ</title>
+    <title>مضمون</title>
+
+    <!-- Mehr Nastaliq Web Font -->
+    <link href="https://fonts.cdnfonts.com/css/mehr-nastaliq-web" rel="stylesheet" />
 
     <style>
         body {
-            font-family: "Jameel Noori Nastaleeq", serif;
+            font-family: "Mehr Nastaliq Web", serif !important;
             padding: 20px;
             max-width: 850px;
             margin: auto;
-            line-height: 2;
+            line-height: 1.8; /* Reduced line height */
         }
+
+        .top-nav {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0;
+            font-size: 20px;
+        }
+        .top-nav a {
+            text-decoration: none;
+            color: #444;
+        }
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
+
         .title {
             font-size: 32px;
             font-weight: bold;
@@ -22,15 +40,33 @@
             color: #444;
             margin-top: 5px;
         }
+
         .content {
             margin-top: 25px;
             font-size: 20px;
             white-space: pre-wrap;
         }
+
+        /* Remove huge gaps between paragraphs */
+        .content p {
+            margin: 0 0 10px 0 !important;
+            padding: 0 !important;
+        }
+        .content div {
+            margin: 0 0 10px 0 !important;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="top-nav">
+        <a href="/">ہوم</a>
+        <a href="/authors.html">مصنفین</a>
+        <a href="/categories.html">زمرہ جات</a>
+        <a href="/journals.html">مجلات</a>
+    </nav>
 
     <h1 id="article-title" class="title"></h1>
     <div id="article-author" class="author"></div>
@@ -45,7 +81,7 @@
         import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
         const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40p";
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         async function loadArticle() {
@@ -88,7 +124,7 @@
 
             document.getElementById("article-journal").innerHTML =
                 data.journals?.name
-                    ? `جرنل: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
+                    ? `مجلہ: <a href="journal.html?id=${data.journals.id}">${data.journals.name}</a>`
                     : "";
 
             document.getElementById("article-content").innerHTML = data.content || "";
