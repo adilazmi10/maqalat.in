@@ -15,17 +15,17 @@
       background: #fdfcf8;
       padding: 20px;
       line-height: 2;
+      margin: 0;
     }
+    h1 { color:#004d40; margin-bottom:16px; font-size:28px; }
     .item {
       padding: 12px;
       background: white;
       margin-bottom: 12px;
       border-right: 4px solid #004d40;
     }
-    a {
-      text-decoration: none;
-      color: #004d40;
-    }
+    a { text-decoration: none; color: #004d40; }
+    .note { color:#666; margin-top:12px; font-size:14px; }
   </style>
 </head>
 
@@ -33,81 +33,222 @@
 
   <h1 id="category-title">لوڈ ہو رہا ہے…</h1>
   <div id="list"></div>
+  <div id="note" class="note" aria-hidden="true"></div>
 
   <script type="module">
+    // single module block (keeps everything together)
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    const supabase = createClient(
-      "https://npnjpcwqmfwwviqlwrvw.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU"
-    );
+    const SUPABASE_URL = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
 
-    const params = new URLSearchParams(window.location.search);
-    const categoryName = params.get("name");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    if (categoryName) {
-      document.getElementById("category-title").textContent = `زمرہ: ${categoryName}`;
+    // Utilities
+    const qs = (k) => new URLSearchParams(window.location.search).get(k);
+    const escapeHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    const titleEl = document.getElementById('category-title');
+    const listEl = document.getElementById('list');
+    const noteEl = document.getElementById('note');
+
+    // Read any of the supported params
+    const paramId = qs('id');
+    const paramName = qs('name');
+    const paramSlug = qs('slug');
+
+    // Set a visible title early if name present
+    if (paramName) titleEl.textContent = `زمرہ: ${paramName}`;
+
+    async function loadById(id) {
+      // fetch category row by UUID
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Category fetch by id error:', error);
+        noteEl.textContent = 'زمرہ لوڈ کرنے میں خرابی۔ کنسول دیکھیں۔';
+        return null;
+      }
+      return data || null;
     }
 
-    async function loadCategory() {
-      const listDiv = document.getElementById("list");
+    async function loadByName(name) {
+      // exact name first
+      let { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('name', name)
+        .maybeSingle();
 
-      // Special case → مصنفین
-      if (categoryName === "مصنفین") {
-        const { data: authors, error } = await supabase
-          .from("authors")
-          .select("id, name")
-          .order("name", { ascending: true });
+      if (error) {
+        console.error('Category fetch by name error:', error);
+        noteEl.textContent = 'زمرہ تلاش کرنے میں خرابی۔';
+        return null;
+      }
+      if (data) return data;
 
-        authors.forEach(a => {
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `<a href="author.html?id=${a.id}">${a.name}</a>`;
-          listDiv.appendChild(div);
-        });
-        return;
+      // fallback: case-insensitive partial match (ilike)
+      const { data: ilikeData, error: ilikeErr } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .ilike('name', `%${name}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (ilikeErr) {
+        console.error('Category ilike error:', ilikeErr);
+        noteEl.textContent = 'زمرہ تلاش کرنے میں خرابی۔';
+        return null;
       }
 
-      // Step 2: Find category ID from name
-      const { data: categoryRow, error: catError } = await supabase
-        .from("categories")
-        .select("id")
-        .eq("name", categoryName)
-        .single();
+      return ilikeData || null;
+    }
 
-      if (catError || !categoryRow) {
-        listDiv.textContent = "زمرہ نہیں ملا۔";
+    async function loadBySlug(slug) {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Category fetch by slug error:', error);
+        noteEl.textContent = 'زمرہ تلاش کرنے میں خرابی۔';
+        return null;
+      }
+      return data || null;
+    }
+
+    async function loadArticlesForCategory(categoryId) {
+      // We request author and journal names where available
+      const { data, error } = await supabase
+        .from('articles')
+        .select(`
+          id,
+          title,
+          reference,
+          author:authors(id, name),
+          journal:journals(id, name),
+          created_at
+        `)
+        .eq('category_id', categoryId)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) {
+        console.error('Articles fetch error:', error);
+        listEl.innerHTML = '<p>مضامین لوڈ کرنے میں خرابی۔</p>';
+        return null;
+      }
+      return data || [];
+    }
+
+    function renderAuthorsList(authors) {
+      listEl.innerHTML = '';
+      if (!authors || authors.length === 0) {
+        listEl.textContent = 'کوئی مصنف موجود نہیں۔';
         return;
       }
+      authors.forEach(a => {
+        const d = document.createElement('div');
+        d.className = 'item';
+        d.innerHTML = `<a href="author.html?id=${a.id}">${escapeHtml(a.name)}</a>`;
+        listEl.appendChild(d);
+      });
+    }
 
-      const categoryId = categoryRow.id;
+    async function loadAuthors() {
+      const { data, error } = await supabase
+        .from('authors')
+        .select('id, name')
+        .order('name', { ascending: true });
 
-      // Step 3: Load all articles belonging to this category
-      const { data: articles, error: artError } = await supabase
-        .from("articles")
-        .select("id, title, reference")
-        .eq("category_id", categoryId)
-        .order("id", { ascending: false });
+      if (error) {
+        console.error('Authors fetch error:', error);
+        listEl.textContent = 'مصنفین لوڈ کرنے میں خرابی۔';
+        return;
+      }
+      renderAuthorsList(data);
+    }
 
-      if (artError || !articles.length) {
-        listDiv.textContent = "اس زمرہ میں کوئی مضمون موجود نہیں۔";
+    function renderArticles(articles) {
+      listEl.innerHTML = '';
+      if (!articles || articles.length === 0) {
+        listEl.textContent = 'اس زمرہ میں کوئی مضمون موجود نہیں۔';
         return;
       }
 
       articles.forEach(a => {
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
+        const d = document.createElement('div');
+        d.className = 'item';
+
+        const authorHtml = a.author?.name ? `<a href="author.html?id=${a.author.id}">${escapeHtml(a.author.name)}</a>` : 'نامعلوم';
+        const journalHtml = a.journal?.name ? ` | <a href="journal.html?id=${a.journal.id}">${escapeHtml(a.journal.name)}</a>` : '';
+
+        d.innerHTML = `
           <a href="article.html?id=${a.id}">
-            <strong>${a.title}</strong><br>
-            ${a.reference || ""}
+            <strong>${escapeHtml(a.title)}</strong>
+            ${a.reference ? `<div style="margin-top:6px;color:#666">${escapeHtml(a.reference)}</div>` : ''}
+            <div style="margin-top:8px; font-size:14px; color:#666;">مصنف: ${authorHtml}${journalHtml}</div>
           </a>
         `;
-        listDiv.appendChild(div);
+        listEl.appendChild(d);
       });
     }
 
-    loadCategory();
+    // Main unified loader — supports id, name, slug
+    (async function main() {
+      try {
+        if (!paramId && !paramName && !paramSlug) {
+          titleEl.textContent = 'کوئی زمرہ منتخب نہیں کیا گیا۔';
+          listEl.textContent = 'زمرہ منتخب کرنے کیلئے صفحہ اول یا زمرہ جات میں جائیں۔';
+          return;
+        }
+
+        // 1) If slug provided, use that first (stable)
+        let categoryRow = null;
+        if (paramSlug) {
+          categoryRow = await loadBySlug(paramSlug);
+        }
+
+        // 2) Else if id provided
+        if (!categoryRow && paramId) {
+          categoryRow = await loadById(paramId);
+        }
+
+        // 3) Else if name provided
+        if (!categoryRow && paramName) {
+          categoryRow = await loadByName(paramName);
+        }
+
+        if (!categoryRow) {
+          titleEl.textContent = 'زمرہ موجود نہیں۔';
+          listEl.textContent = 'یہ زمرہ ڈیٹا بیس میں موجود نہیں ہے۔';
+          return;
+        }
+
+        // set title (override early name)
+        titleEl.textContent = `زمرہ: ${categoryRow.name}`;
+
+        // Special case for authors category (slug or name or id)
+        if (String(categoryRow.slug || '').toLowerCase() === 'authors' || categoryRow.name === 'مصنفین') {
+          await loadAuthors();
+          return;
+        }
+
+        // Finally load articles by category_id
+        const articles = await loadArticlesForCategory(categoryRow.id);
+        renderArticles(articles);
+
+      } catch (err) {
+        console.error('Unexpected category loader error:', err);
+        noteEl.textContent = '';
+      }
+    })();
   </script>
 
 </body>
