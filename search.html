@@ -94,15 +94,16 @@
       }
 
       const { data, error } = await supabase
-  .from('articles')
-  .select(`
-    id,
-    title,
-    reference,
-    content,
-    authors ( id, name )
-  `)
-  .or(`title.ilike.%${query}%,reference.ilike.%${query}%,content.ilike.%${query}%`);
+  .from('search_articles')
+  .select('*')
+  .or(`
+    title.ilike.%${query}%,
+    content.ilike.%${query}%,
+    reference.ilike.%${query}%,
+    author_name.ilike.%${query}%,
+    journal_name.ilike.%${query}%,
+    category_name.ilike.%${query}%
+  `);
 
       if (error) {
         document.getElementById('results').textContent = 'تلاش میں خرابی پیش آئی۔';
@@ -117,15 +118,52 @@
         container.innerHTML += '<p>کوئی نتیجہ نہیں ملا۔</p>';
         return;
       }
+function highlight(text, word) {
+  if (!text) return "";
 
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+
+  return text.replace(
+    regex,
+    '<mark style="background:#ffeb3b;padding:0 2px;border-radius:2px;">$1</mark>'
+  );
+}
       data.forEach(article => {
         const card = document.createElement('div');
         card.className = 'article-card';
-        card.innerHTML = `
-          <h3><a href="article.html?id=${article.id}">${article.title}</a></h3>
-          <p><strong>حوالہ:</strong> ${article.reference || ''}</p>
-          <p><strong>مصنف:</strong> <a href="author.html?id=${article.authors?.id}">${article.authors?.name || 'نامعلوم'}</a></p>
-        `;
+        const preview = article.content
+  ? article.content.replace(/<[^>]*>/g, "").substring(0,250)
+  : "";
+
+card.innerHTML = `
+<h3>
+  <a href="article.html?id=${article.id}">
+    ${highlight(article.title, query)}
+  </a>
+</h3>
+
+<p><strong>مصنف:</strong>
+<a href="author.html?id=${article.author_id}">
+${highlight(article.author_name || "نامعلوم", query)}
+</a></p>
+
+<p><strong>زمرہ:</strong>
+${highlight(article.category_name || "", query)}
+</p>
+
+<p><strong>مجلہ:</strong>
+${highlight(article.journal_name || "", query)}
+</p>
+
+<p><strong>حوالہ:</strong>
+${highlight(article.reference || "", query)}
+</p>
+
+<p>
+${highlight(preview, query)}...
+</p>
+`;
         container.appendChild(card);
       });
     }
