@@ -96,14 +96,7 @@
       const { data, error } = await supabase
   .from('search_articles')
   .select('*')
-  .or(`
-    title.ilike.%${query}%,
-    content.ilike.%${query}%,
-    reference.ilike.%${query}%,
-    author_name.ilike.%${query}%,
-    journal_name.ilike.%${query}%,
-    category_name.ilike.%${query}%
-  `);
+  .or(`title.ilike.%${query}%,content.ilike.%${query}%,reference.ilike.%${query}%,author_name.ilike.%${query}%,journal_name.ilike.%${query}%,category_name.ilike.%${query}%`);
 
       if (error) {
         document.getElementById('results').textContent = 'تلاش میں خرابی پیش آئی۔';
