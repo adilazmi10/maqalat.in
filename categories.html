@@ -108,6 +108,8 @@
         const div = document.createElement('div');
         div.className = 'category-card';
 
+        const linkPage = category.name === 'مصنفین' ? 'category-authors.html' : 'category.html';
+
         div.innerHTML = `
           <a href="${linkPage}?name=${encodeURIComponent(category.name)}">${category.name}</a>
           <span class="count">(${count} مضامین)</span>
