@@ -105,6 +105,8 @@
     <div class="meta" id="article-category"></div>
     <div class="meta" id="article-journal"></div>
     <div class="meta" id="article-reference"></div>
+    <div class="meta" id="article-views"></div>
+    
 
     <hr>
 
@@ -130,7 +132,7 @@
       const { data, error } = await supabase
         .from("articles")
         .select(`
-          id, title, content, reference,
+          id, title, content, reference, views,
           authors ( id, name ),
           categories ( id, name ),
           journals ( id, name )
@@ -163,7 +165,17 @@
 
       document.getElementById("article-reference").innerHTML =
         data.reference ? `حوالہ: ${data.reference}` : "";
+// Increase view count
+const currentViews = (data.views || 0) + 1;
 
+await supabase
+  .from("articles")
+  .update({ views: currentViews })
+  .eq("id", data.id);
+
+// Show updated view count
+document.getElementById("article-views").innerHTML =
+  `👁️ یہ مضمون <strong>${currentViews}</strong> مرتبہ دیکھا گیا`;
       document.getElementById("article-content").innerHTML = data.content || "";
     }
 
