@@ -125,9 +125,23 @@ function highlight(text, word) {
       data.forEach(article => {
         const card = document.createElement('div');
         card.className = 'article-card';
-        const preview = article.content
-  ? article.content.replace(/<[^>]*>/g, "").substring(0,250)
+        const plainText = article.content
+  ? article.content.replace(/<[^>]*>/g, "")
   : "";
+
+let preview = plainText.substring(0, 250);
+
+const index = plainText.toLowerCase().indexOf(query.toLowerCase());
+
+if (index !== -1) {
+
+  const start = Math.max(0, index - 80);
+  const end = Math.min(plainText.length, index + 170);
+
+  preview = (start > 0 ? "..." : "")
+          + plainText.substring(start, end)
+          + (end < plainText.length ? "..." : "");
+}
 
 card.innerHTML = `
 <h3>
