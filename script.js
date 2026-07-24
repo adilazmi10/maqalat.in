@@ -31,13 +31,13 @@ async function loadArticles() {
   container.innerHTML = '';
 
   articles.forEach(article => {
-    const authorName = article.author?.name || 'نامعلوم';
+    const authorName = article.author?.name || '۔۔';
     const authorId = article.author?.id;
 
-    const categoryName = article.category?.name || 'نامعلوم';
+    const categoryName = article.category?.name || '۔۔';
     const categoryId = article.category?.id;
 
-    const journalName = article.journal?.name || 'نامعلوم';
+    const journalName = article.journal?.name || '۔۔';
     const journalId = article.journal?.id;
 
     const card = document.createElement('div');
@@ -48,7 +48,7 @@ async function loadArticles() {
       <p><strong>حوالہ:</strong> ${article.reference || ''}</p>
       <p>مصنف: <a href="author.html?id=${authorId}">${authorName}</a></p>
       <p>زمرہ: <a href="category.html?id=${categoryId}">${categoryName}</a></p>
-      <p>جریدہ: <a href="journal.html?id=${journalId}">${journalName}</a></p>
+      <p>مجلہ: <a href="journal.html?id=${journalId}">${journalName}</a></p>
     `;
 
     container.appendChild(card);
