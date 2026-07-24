@@ -107,19 +107,86 @@
     <div class="meta" id="article-reference"></div>
     
 
-    <hr>
+   <hr>
 
-    <div id="article-content" class="content"></div>
+<div style="text-align:center; margin-bottom:20px;">
+  <button id="download-pdf" style="
+    background:#00695c;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:18px;
+    font-family:'Noto Nastaliq Urdu', serif;">
+    📄 PDF ڈاؤن لوڈ کریں
+  </button>
+</div>
+
+<div id="article-content" class="content"></div>
     <hr>
 <div class="meta" id="article-views" style="text-align:center; color:#666; margin-top:20px;"></div>
   </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
     const supabaseUrl = "https://npnjpcwqmfwwviqlwrvw.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wbmpwY3dxbWZ3d3ZpcWx3cnZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMTMyMzMsImV4cCI6MjA2ODY4OTIzM30.EEbXf-xsonUjvE0DZBOGcG9EU97aGNSUc6MRTEE40pU";
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const { jsPDF } = window.jspdf;
+
+async function downloadPDF() {
+
+  const button = document.getElementById("download-pdf");
+
+  button.style.display = "none";
+
+  const article = document.querySelector(".article-box");
+
+  const canvas = await html2canvas(article, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff"
+  });
+
+  button.style.display = "";
+
+  const pdf = new jsPDF("p","mm","a4");
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  const imgWidth = pageWidth;
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  const imgData = canvas.toDataURL("image/png");
+
+  pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight);
+
+  heightLeft -= pageHeight;
+
+  while(heightLeft > 0){
+
+      position = heightLeft - imgHeight;
+
+      pdf.addPage();
+
+      pdf.addImage(imgData,"PNG",0,position,imgWidth,imgHeight);
+
+      heightLeft -= pageHeight;
+  }
+
+  let filename=document.getElementById("article-title").innerText;
+
+  filename=filename.replace(/[\\/:*?"<>|]/g,"_");
+
+  pdf.save(filename+".pdf");
+}
 
     async function loadArticle() {
       const params = new URLSearchParams(window.location.search);
@@ -191,7 +258,7 @@ document.getElementById("article-views").innerHTML =
       document.getElementById("article-content").innerHTML = data.content || "";
     }
 
-    loadArticle();
+    loadArticle(); document.getElementById("download-pdf").addEventListener("click", downloadPDF);
   </script>
 
 </body>
