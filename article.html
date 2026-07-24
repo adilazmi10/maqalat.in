@@ -166,17 +166,28 @@
 
       document.getElementById("article-reference").innerHTML =
         data.reference ? `حوالہ: ${data.reference}` : "";
-// Increase view count
-const currentViews = (data.views || 0) + 1;
+// Count only one view per article every 24 hours
+const storageKey = `article_view_${data.id}`;
+const lastViewed = localStorage.getItem(storageKey);
+const now = Date.now();
 
-await supabase
-  .from("articles")
-  .update({ views: currentViews })
-  .eq("id", data.id);
+let currentViews = data.views || 0;
 
-// Show updated view count
+if (!lastViewed || (now - Number(lastViewed)) > 24 * 60 * 60 * 1000) {
+
+  currentViews++;
+
+  await supabase
+    .from("articles")
+    .update({ views: currentViews })
+    .eq("id", data.id);
+
+  localStorage.setItem(storageKey, now.toString());
+}
+
+// Show view count
 document.getElementById("article-views").innerHTML =
-  `👁️  <strong>${currentViews}</strong> `;
+  `👁️ <strong>${currentViews}</strong> `;
       document.getElementById("article-content").innerHTML = data.content || "";
     }
 
